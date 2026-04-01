@@ -40,7 +40,20 @@ navLinks.forEach(link => {
   link.addEventListener('click', () => {
     navList.classList.remove('show');
   });
-});
+}
+
+// ========== PDF.js Integration ==========
+// Load PDF.js library dynamically
+const script = document.createElement('script');
+script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
+document.head.appendChild(script);
+
+// Configure PDF.js worker
+script.onload = () => {
+  if (window.pdfjsLib) {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  }
+};
 
 // ========== ENHANCED SMART ATS BUILDER ==========
 // DOM Elements
@@ -69,42 +82,123 @@ function escapeHtml(str) {
   });
 }
 
+// Parse PDF file and extract text
+async function parsePDF(file) {
+  return new Promise((resolve, reject) => {
+    if (!window.pdfjsLib) {
+      reject(new Error('PDF.js library not loaded yet. Please wait a moment and try again.'));
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const typedarray = new Uint8Array(e.target.result);
+        const pdf = await window.pdfjsLib.getDocument(typedarray).promise;
+        let fullText = '';
+        
+        // Extract text from all pages
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items.map(item => item.str).join(' ');
+          fullText += pageText + '\n\n';
+        }
+        
+        resolve(fullText);
+      } catch (error) {
+        reject(new Error('Error parsing PDF: ' + error.message));
+      }
+    };
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Parse DOCX file (basic extraction)
+async function parseDOCX(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        // For DOCX, we'll use a simple approach - notify user to use TXT or PDF
+        // In a production app, you'd use a library like mammoth.js
+        reject(new Error('DOCX files require advanced parsing. Please convert to PDF or TXT format, or paste text manually.'));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(new Error('Error reading file'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// Handle file upload with PDF support
+async function handleFile(file) {
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  
+  // Show loading state
+  uploadedFileInfo.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Processing ${file.name}...`;
+  
+  try {
+    if (fileExtension === 'pdf') {
+      // Parse PDF file
+      const extractedText = await parsePDF(file);
+      currentResumeText = extractedText;
+      resumeTextArea.value = extractedText;
+      uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Successfully loaded PDF: ${file.name} (${extractedText.length} characters extracted)`;
+    } 
+    else if (fileExtension === 'txt') {
+      // Parse TXT file
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentResumeText = e.target.result;
+        resumeTextArea.value = currentResumeText;
+        uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Loaded: ${file.name} (${currentResumeText.length} characters)`;
+      };
+      reader.readAsText(file);
+    }
+    else if (fileExtension === 'docx') {
+      uploadedFileInfo.innerHTML = `<span style="color:#c2410c;"><i class="fas fa-exclamation-triangle"></i> DOCX files: Please paste text manually or convert to PDF/TXT.</span>`;
+      alert('DOCX files require advanced parsing. Please paste your resume text manually or convert to PDF/TXT format.');
+    }
+    else {
+      uploadedFileInfo.innerHTML = `<span style="color:#c2410c;"><i class="fas fa-exclamation-triangle"></i> Unsupported format. Please upload PDF or TXT files.</span>`;
+    }
+  } catch (error) {
+    console.error('File processing error:', error);
+    uploadedFileInfo.innerHTML = `<span style="color:#c2410c;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`;
+  }
+}
+
 // File upload handling
 if (fileUploadArea) {
   fileUploadArea.addEventListener('click', () => fileInput.click());
-  fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.style.borderColor = '#2A5298'; });
-  fileUploadArea.addEventListener('dragleave', () => fileUploadArea.style.borderColor = '#cbdde9');
+  fileUploadArea.addEventListener('dragover', (e) => { 
+    e.preventDefault(); 
+    fileUploadArea.style.borderColor = '#2A5298'; 
+    fileUploadArea.style.background = '#f5f9ff';
+  });
+  fileUploadArea.addEventListener('dragleave', () => { 
+    fileUploadArea.style.borderColor = '#cbdde9';
+    fileUploadArea.style.background = '#fafcff';
+  });
   fileUploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
     fileUploadArea.style.borderColor = '#cbdde9';
+    fileUploadArea.style.background = '#fafcff';
   });
   fileInput.addEventListener('change', (e) => {
     if (e.target.files[0]) handleFile(e.target.files[0]);
   });
 }
 
-function handleFile(file) {
-  if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
-    currentFileName = file.name;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      currentResumeText = e.target.result;
-      resumeTextArea.value = currentResumeText;
-      uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Loaded: ${currentFileName}`;
-    };
-    reader.readAsText(file);
-  } else {
-    alert('Please upload a TXT file or paste text manually.');
-    uploadedFileInfo.innerHTML = '<span style="color:#c2410c;">⚠️ For best results, paste text in the textarea below</span>';
-  }
-}
-
 // Extract keywords from text
 function extractKeywords(text) {
   const words = text.toLowerCase().split(/[\s,.\n()\-:;]+/);
-  const commonWords = new Set(['the', 'and', 'for', 'with', 'experience', 'skills', 'years', 'ability', 'strong', 'proven', 'team', 'work', 'communication', 'required', 'preferred', 'looking', 'seeking', 'about', 'are', 'will', 'have', 'your', 'you', 'our']);
+  const commonWords = new Set(['the', 'and', 'for', 'with', 'experience', 'skills', 'years', 'ability', 'strong', 'proven', 'team', 'work', 'communication', 'required', 'preferred', 'looking', 'seeking', 'about', 'are', 'will', 'have', 'your', 'you', 'our', 'this', 'that', 'from', 'they', 'were', 'been', 'has', 'was', 'not', 'but', 'what', 'all', 'can', 'out', 'other', 'into', 'than', 'then', 'now', 'over', 'such', 'well', 'also']);
   const keywords = words.filter(w => w.length > 3 && !commonWords.has(w) && !/^\d+$/.test(w));
   const unique = [...new Set(keywords)];
   return unique.slice(0, 40);
