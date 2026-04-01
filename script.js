@@ -351,3 +351,271 @@ setTimeout(() => {
     }
   });
 }, 100);
+
+ // DOM Elements
+  const fileUploadArea = document.getElementById('fileUploadArea');
+  const fileInput = document.getElementById('resumeFileInput');
+  const uploadedFileInfo = document.getElementById('uploadedFileInfo');
+  const resumeTextArea = document.getElementById('resumeTextInput');
+  const jobDescArea = document.getElementById('jobDescriptionInput');
+  const generateBtn = document.getElementById('generateAtsOptimizedBtn');
+  const resultDiv = document.getElementById('atsOptimizedResult');
+  const matchScoreSpan = document.getElementById('atsMatchScore');
+  const keywordAnalysisDiv = document.getElementById('keywordAnalysis');
+  const optimizedContentDiv = document.getElementById('optimizedResumeContent');
+
+  let currentResumeText = '';
+  let currentFileName = '';
+
+  // File upload handling
+  fileUploadArea.addEventListener('click', () => fileInput.click());
+  fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.style.borderColor = '#2A5298'; });
+  fileUploadArea.addEventListener('dragleave', () => fileUploadArea.style.borderColor = '#cbdde9');
+  fileUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+    fileUploadArea.style.borderColor = '#cbdde9';
+  });
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  function handleFile(file) {
+    if (file.type === 'text/plain' || file.type === 'application/pdf' || file.name.endsWith('.txt')) {
+      currentFileName = file.name;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentResumeText = e.target.result;
+        resumeTextArea.value = currentResumeText;
+        uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Loaded: ${currentFileName}`;
+      };
+      reader.readAsText(file);
+    } else {
+      alert('Please upload a TXT file or paste text manually. For PDF demo, paste content.');
+      uploadedFileInfo.innerHTML = '<span style="color:#c2410c;">⚠️ For demo, paste text in the textarea below</span>';
+    }
+  }
+
+  // Extract keywords from text
+  function extractKeywords(text) {
+    const words = text.toLowerCase().split(/[\s,.\n()\-:;]+/);
+    const commonWords = new Set(['the', 'and', 'for', 'with', 'experience', 'skills', 'years', 'ability', 'strong', 'proven', 'team', 'work', 'communication', 'required', 'preferred', 'looking', 'seeking']);
+    const keywords = words.filter(w => w.length > 3 && !commonWords.has(w) && !/^\d+$/.test(w));
+    const unique = [...new Set(keywords)];
+    return unique.slice(0, 40);
+  }
+
+  // Calculate match score & find missing keywords
+  function analyzeATS(resumeText, jobDesc) {
+    if (!resumeText || !jobDesc) return { score: 0, matched: [], missing: [], suggestions: [] };
+    
+    const resumeLower = resumeText.toLowerCase();
+    const jobKeywords = extractKeywords(jobDesc);
+    const matched = [];
+    const missing = [];
+    
+    jobKeywords.forEach(keyword => {
+      if (resumeLower.includes(keyword)) {
+        matched.push(keyword);
+      } else {
+        missing.push(keyword);
+      }
+    });
+    
+    const score = jobKeywords.length > 0 ? Math.round((matched.length / jobKeywords.length) * 100) : 0;
+    const suggestions = missing.slice(0, 8).map(k => `Add "${k}" to your skills or experience section`);
+    
+    return { score, matched, missing, suggestions, jobKeywords };
+  }
+
+  // Generate optimized resume based on JD
+  function generateOptimizedResume(originalResume, jobDesc, matchedKeywords, missingKeywords) {
+    if (!originalResume) return "No resume content provided.";
+    
+    const lines = originalResume.split('\n');
+    let optimized = `=== ATS-OPTIMIZED RESUME ===\n`;
+    optimized += `Generated based on job description analysis\n\n`;
+    
+    // Add keyword optimization note
+    if (matchedKeywords.length > 0) {
+      optimized += `✓ STRONG MATCHES: ${matchedKeywords.slice(0, 15).join(', ')}\n\n`;
+    }
+    if (missingKeywords.length > 0) {
+      optimized += `⚠️ ADD THESE KEYWORDS TO IMPROVE SCORE:\n${missingKeywords.slice(0, 12).join(', ')}\n\n`;
+    }
+    
+    optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    optimized += `OPTIMIZED RESUME CONTENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    
+    // Add structured content
+    optimized += `📌 PROFESSIONAL SUMMARY\n`;
+    optimized += `Results-driven professional with expertise in ${matchedKeywords.slice(0, 5).join(', ')}. Proven track record of delivering high-impact results.\n\n`;
+    
+    // Extract and display original sections
+    let skillsSection = '';
+    let experienceSection = '';
+    let inSkills = false;
+    
+    for (let line of lines) {
+      if (line.toLowerCase().includes('skill') || line.toLowerCase().includes('expertise')) {
+        inSkills = true;
+        skillsSection += line + '\n';
+      } else if (inSkills && (line.trim() === '' || line.toLowerCase().includes('experience') || line.toLowerCase().includes('education'))) {
+        inSkills = false;
+      } else if (inSkills) {
+        skillsSection += line + '\n';
+      }
+      
+      if (line.toLowerCase().includes('experience') || line.toLowerCase().includes('work history')) {
+        experienceSection += line + '\n';
+      } else if (experienceSection && line.trim().length > 0 && !line.toLowerCase().includes('education')) {
+        experienceSection += line + '\n';
+      }
+    }
+    
+    optimized += `💼 KEY EXPERIENCE\n${experienceSection || '• Senior role with demonstrated success in relevant domains.\n'}\n`;
+    optimized += `🛠️ CORE SKILLS & COMPETENCIES\n`;
+    
+    // Add missing keywords as suggestions
+    const missingToAdd = missingKeywords.slice(0, 8);
+    if (missingToAdd.length > 0) {
+      optimized += `[RECOMMENDED TO ADD]: ${missingToAdd.join(', ')}\n`;
+    }
+    optimized += `${skillsSection || '• Strategic Planning • Cross-functional Leadership • Data Analysis\n'}\n`;
+    
+    optimized += `🎓 EDUCATION & CERTIFICATIONS\n`;
+    optimized += `• Relevant certifications aligned with industry standards\n\n`;
+    optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    optimized += `✨ ATS OPTIMIZATION TIPS:\n`;
+    optimized += `1. Include the missing keywords naturally in your experience bullets\n`;
+    optimized += `2. Use standard section headers (Work Experience, Skills, Education)\n`;
+    optimized += `3. Quantify achievements with numbers and percentages\n`;
+    optimized += `4. Avoid tables, graphics, and unusual formatting\n`;
+    
+    return optimized;
+  }
+
+  // Main generation function
+  generateBtn.addEventListener('click', () => {
+    const resumeText = resumeTextArea.value.trim();
+    const jobDesc = jobDescArea.value.trim();
+    
+    if (!resumeText) {
+      alert('Please upload a resume or paste your CV text in the textarea.');
+      return;
+    }
+    if (!jobDesc) {
+      alert('Please paste a job description for ATS analysis.');
+      return;
+    }
+    
+    // Show loading state
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Analyzing...';
+    generateBtn.disabled = true;
+    
+    setTimeout(() => {
+      const analysis = analyzeATS(resumeText, jobDesc);
+      const optimizedResume = generateOptimizedResume(resumeText, jobDesc, analysis.matched, analysis.missing);
+      
+      // Update UI
+      matchScoreSpan.textContent = `${analysis.score}% Match`;
+      if (analysis.score >= 80) matchScoreSpan.style.background = "#0a5c2e";
+      else if (analysis.score >= 60) matchScoreSpan.style.background = "#e6b422";
+      else matchScoreSpan.style.background = "#c2410c";
+      
+      // Keyword analysis display
+      keywordAnalysisDiv.innerHTML = `
+        <div style="margin: 1rem 0;">
+          <strong><i class="fas fa-key"></i> Keyword Match Analysis:</strong>
+          <div class="keyword-match">
+            ${analysis.matched.slice(0, 12).map(k => `<span class="keyword-tag match">✓ ${k}</span>`).join('')}
+            ${analysis.missing.slice(0, 12).map(k => `<span class="keyword-tag missing">✗ ${k}</span>`).join('')}
+          </div>
+          ${analysis.missing.length > 0 ? `<p style="margin-top: 0.8rem; color: #c2410c;"><i class="fas fa-exclamation-triangle"></i> Missing ${analysis.missing.length} key keywords. Add them to boost your ATS score.</p>` : '<p style="color: #0a5c2e;">✅ Excellent keyword coverage!</p>'}
+        </div>
+      `;
+      
+      // Display optimized resume
+      optimizedContentDiv.innerHTML = `
+        <div style="background: #f8faff; border-radius: 1rem; padding: 1.2rem; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; max-height: 500px; overflow-y: auto;">
+          ${optimizedResume.replace(/\n/g, '<br>')}
+        </div>
+      `;
+      
+      resultDiv.style.display = 'block';
+      generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate ATS-Optimized Resume';
+      generateBtn.disabled = false;
+      
+      // Store for download
+      window.currentOptimizedResume = optimizedResume;
+    }, 500);
+  });
+  
+  // Download optimized resume
+  document.getElementById('downloadOptimizedResumeBtn')?.addEventListener('click', () => {
+    if (window.currentOptimizedResume) {
+      const blob = new Blob([window.currentOptimizedResume], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ATS_Optimized_Resume_${new Date().toISOString().slice(0,10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      alert('Generate an optimized resume first.');
+    }
+  });
+  
+  // CV Download
+  document.getElementById('downloadCvBtn')?.addEventListener('click', () => {
+    const content = `ELIAS VEGA — ATS EXPERT CV\n\n8+ years experience in ATS optimization. Proven 94% success rate.`;
+    const blob = new Blob([content], {type: 'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Elias_Vega_CV.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+  
+  // Resume versions
+  let resumeVersions = [
+    { id: 1, title: "Product Designer Resume", date: "2025-03-20", version: "v3.0", highlights: "Optimized with ATS keywords" }
+  ];
+  
+  function renderResumeList() {
+    const container = document.getElementById('resumeListContainer');
+    if(!container) return;
+    container.innerHTML = resumeVersions.map((res, idx) => `
+      <div class="resume-item">
+        <div><strong>${res.title}</strong> <span style="background:#eef2fa; padding:2px 8px; border-radius:40px;">${res.version}</span><div style="font-size:0.8rem;">📅 ${res.date}</div></div>
+        <div>${idx === 0 ? '<span style="background:#2A5298; color:white; padding:4px 12px; border-radius:40px;">LAST RESUME</span>' : ''}</div>
+      </div>
+    `).join('');
+  }
+  
+  document.getElementById('addNewResumeVersion')?.addEventListener('click', () => {
+    resumeVersions.unshift({ id: Date.now(), title: `ATS Optimized ${new Date().toLocaleDateString()}`, date: new Date().toISOString().slice(0,10), version: `v${resumeVersions.length+1}.0`, highlights: "New ATS version" });
+    renderResumeList();
+  });
+  renderResumeList();
+  
+  // Mobile menu & active link
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const navList = document.getElementById('navLinks');
+  mobileBtn?.addEventListener('click', () => navList.classList.toggle('show'));
+  window.addEventListener('scroll', () => {
+    const sections = document.querySelectorAll('section');
+    let current = '';
+    const scrollPos = window.scrollY + 100;
+    sections.forEach(section => {
+      if(scrollPos >= section.offsetTop && scrollPos < section.offsetTop + section.offsetHeight) current = section.id;
+    });
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.classList.remove('active');
+      if(link.getAttribute('href') === `#${current}`) link.classList.add('active');
+    });
+  });
