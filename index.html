@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Elias Vega · Modern Portfolio</title>
+  <title>Elias Vega · Smart ATS Portfolio</title>
   <!-- Google Fonts & Font Awesome -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -15,7 +15,7 @@
 <div class="sticky-nav">
   <div class="nav-container">
     <div class="logo">ELIAS<span>.</span>VEGA</div>
-    <button class="menu-toggle" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    <button class="menu-toggle" id="mobileMenuBtn" aria-label="Menu"><i class="fas fa-bars"></i></button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#home" class="nav-link">Home</a></li>
       <li><a href="#about" class="nav-link">About</a></li>
@@ -30,10 +30,10 @@
 
 <main>
   <section id="home">
-    <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-      <span style="font-weight: 600; color: #2A5298;">✦ SMART ATS PORTFOLIO</span>
-      <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.2;">AI-Powered Resume<br>Optimization Engine</h1>
-      <p style="font-size: 1.2rem; max-width: 600px;">Upload your CV, paste the job description, and get instant ATS analysis + optimized resume.</p>
+    <div class="home-content">
+      <span class="home-badge">✦ SMART ATS PORTFOLIO</span>
+      <h1 class="home-title">AI-Powered Resume<br>Optimization Engine</h1>
+      <p class="home-description">Upload your CV, paste the job description, and get instant ATS analysis + optimized resume.</p>
       <div class="btn-group">
         <a href="#ats-builder" class="btn btn-primary"><i class="fas fa-rocket"></i> Try ATS Builder</a>
         <a href="#cv" class="btn btn-outline"><i class="fas fa-file-alt"></i> View CV</a>
@@ -43,13 +43,13 @@
 
   <section id="about">
     <h2 class="section-title">About me</h2>
-    <div style="display: flex; flex-wrap: wrap; gap: 2rem; align-items: center;">
-      <div style="flex: 1.5;">
-        <p style="font-size: 1.2rem;">👋 I'm Elias, an ATS optimization specialist helping you beat automated screening with smart keyword matching and resume engineering.</p>
-        <div style="margin-top: 1.5rem;"><i class="fas fa-check-circle" style="color:#2A5298;"></i> 94% success rate · 500+ optimized resumes</div>
+    <div class="about-container">
+      <div class="about-text">
+        <p>👋 I'm Elias, an ATS optimization specialist helping you beat automated screening with smart keyword matching and resume engineering.</p>
+        <div class="about-stats"><i class="fas fa-check-circle"></i> 94% success rate · 500+ optimized resumes</div>
       </div>
-      <div style="flex: 1; background: #e9f0f9; border-radius: 2rem; padding: 2rem; text-align: center;">
-        <i class="fas fa-user-astronaut" style="font-size: 4rem;"></i>
+      <div class="about-card">
+        <i class="fas fa-user-astronaut"></i>
         <h3>Elias Vega</h3>
         <p>ATS Strategy Expert</p>
       </div>
@@ -83,12 +83,12 @@
       <div class="ats-upload-section">
         <h3><i class="fas fa-cloud-upload-alt"></i> 1. Upload Your CV / Resume</h3>
         <div class="file-upload-area" id="fileUploadArea">
-          <i class="fas fa-file-pdf" style="font-size: 2rem; color: #2A5298;"></i>
+          <i class="fas fa-file-pdf"></i>
           <p>Click to upload or drag & drop (PDF/TXT)</p>
           <input type="file" id="resumeFileInput" accept=".pdf,.txt,.docx" style="display: none;">
         </div>
-        <div id="uploadedFileInfo" style="margin-top: 0.8rem; font-size: 0.9rem; color: #2A5298;"></div>
-        <div class="form-group" style="margin-top: 1rem;">
+        <div id="uploadedFileInfo" class="upload-info"></div>
+        <div class="form-group">
           <label>Or paste resume text below:</label>
           <textarea id="resumeTextInput" rows="6" placeholder="Paste your resume content here... (Experience, skills, education)"></textarea>
         </div>
@@ -104,8 +104,8 @@
       </div>
 
       <!-- Generate Button -->
-      <div class="btn-group" style="justify-content: center; margin-top: 1rem;">
-        <button class="btn btn-primary" id="generateAtsOptimizedBtn" style="padding: 1rem 2rem; font-size: 1rem;">
+      <div class="btn-group center">
+        <button class="btn btn-primary" id="generateAtsOptimizedBtn">
           <i class="fas fa-magic"></i> Generate ATS-Optimized Resume
         </button>
       </div>
@@ -113,13 +113,13 @@
       <!-- Results Section -->
       <div id="atsOptimizedResult" style="display: none;">
         <div class="ats-result-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div class="result-header">
             <h3><i class="fas fa-chart-line"></i> ATS Analysis Report</h3>
             <span class="score-badge" id="atsMatchScore">0% Match</span>
           </div>
           <div id="keywordAnalysis"></div>
-          <div id="optimizedResumeContent" style="margin-top: 1.5rem;"></div>
-          <div class="btn-group" style="margin-top: 1rem;">
+          <div id="optimizedResumeContent"></div>
+          <div class="btn-group">
             <button class="btn btn-outline" id="downloadOptimizedResumeBtn"><i class="fas fa-download"></i> Download Optimized Resume</button>
           </div>
         </div>
@@ -130,11 +130,11 @@
   <section id="cv">
     <h2 class="section-title">📄 Curriculum Vitae</h2>
     <div class="card">
-      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
-        <div><i class="fas fa-file-pdf" style="font-size: 2rem; color:#c44536;"></i> <strong>Elias_Vega_Master_CV.pdf</strong></div>
+      <div class="cv-header">
+        <div><i class="fas fa-file-pdf"></i> <strong>Elias_Vega_Master_CV.pdf</strong></div>
         <button class="btn btn-primary" id="downloadCvBtn"><i class="fas fa-download"></i> Download CV</button>
       </div>
-      <hr style="margin: 1rem 0;">
+      <hr>
       <div><i class="fas fa-briefcase"></i> 8+ years · ATS expert · 500+ successful placements</div>
     </div>
   </section>
