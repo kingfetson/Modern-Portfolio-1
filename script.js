@@ -1,4 +1,4 @@
-// script.js - Modern Portfolio Interactive Features
+// script.js - Modern Portfolio Interactive Features with Enhanced ATS Builder
 
 // ========== STICKY NAVIGATION ACTIVE LINK & MOBILE MENU ==========
 const sections = document.querySelectorAll('section');
@@ -42,26 +42,23 @@ navLinks.forEach(link => {
   });
 });
 
-// ========== SMART ATS BUILDER LOGIC ==========
-const generateBtn = document.getElementById('generateAtsPreviewBtn');
-const previewDiv = document.getElementById('atsPreviewResult');
-const previewContent = document.getElementById('previewContent');
-const atsScoreSpan = document.getElementById('atsScoreBadge');
+// ========== ENHANCED SMART ATS BUILDER ==========
+// DOM Elements
+const fileUploadArea = document.getElementById('fileUploadArea');
+const fileInput = document.getElementById('resumeFileInput');
+const uploadedFileInfo = document.getElementById('uploadedFileInfo');
+const resumeTextArea = document.getElementById('resumeTextInput');
+const jobDescArea = document.getElementById('jobDescriptionInput');
+const generateBtn = document.getElementById('generateAtsOptimizedBtn');
+const resultDiv = document.getElementById('atsOptimizedResult');
+const matchScoreSpan = document.getElementById('atsMatchScore');
+const keywordAnalysisDiv = document.getElementById('keywordAnalysis');
+const optimizedContentDiv = document.getElementById('optimizedResumeContent');
 
-function calculateATSScore(skillsStr, experience, summary) {
-  let score = 60;
-  const skillsArray = skillsStr.split(',').map(s => s.trim().toLowerCase());
-  const keywords = ['ux', 'design', 'javascript', 'react', 'python', 'ats', 'product', 'management', 'data', 'strategy', 'leadership', 'agile', 'figma', 'research', 'analytics', 'marketing', 'sales', 'project', 'development'];
-  let matched = skillsArray.filter(skill => keywords.some(kw => skill.includes(kw))).length;
-  score += Math.min(20, matched * 4);
-  if(experience >= 5) score += 10;
-  if(experience >= 2 && experience < 5) score += 5;
-  if(summary.length > 60) score += 5;
-  if(summary.match(/[0-9]+%/)) score += 5;
-  if(summary.match(/[0-9]+x/)) score += 3;
-  return Math.min(98, score);
-}
+let currentResumeText = '';
+let currentFileName = '';
 
+// Escape HTML helper
 function escapeHtml(str) {
   if(!str) return '';
   return str.replace(/[&<>]/g, function(m) {
@@ -69,305 +66,11 @@ function escapeHtml(str) {
     if(m === '<') return '&lt;';
     if(m === '>') return '&gt;';
     return m;
-  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-    return c;
   });
 }
 
-if (generateBtn) {
-  generateBtn.addEventListener('click', () => {
-    const name = document.getElementById('atsName').value.trim() || "Candidate";
-    const title = document.getElementById('atsTitle').value.trim() || "Professional";
-    let skillsRaw = document.getElementById('atsSkills').value;
-    const experience = parseInt(document.getElementById('atsExperience').value) || 0;
-    const summary = document.getElementById('atsSummary').value.trim();
-
-    const atsScore = calculateATSScore(skillsRaw, experience, summary);
-    const skillList = skillsRaw ? skillsRaw.split(',').map(s => s.trim()).join(' · ') : 'Not specified';
-    
-    const previewHtml = `
-      <div style="background:#F8FAFE; border-radius:1rem; padding:1rem;">
-        <p><strong>${escapeHtml(name)}</strong> — ${escapeHtml(title)}</p>
-        <p><i class="fas fa-microchip"></i> <strong>ATS Keywords:</strong> ${escapeHtml(skillList)}</p>
-        <p><i class="fas fa-chart-line"></i> <strong>Experience:</strong> ${experience} years</p>
-        <p><i class="fas fa-star"></i> <strong>Highlight:</strong> ${escapeHtml(summary.substring(0, 150))}${summary.length>150?'...':''}</p>
-        <hr style="margin:0.8rem 0">
-        <p><i class="fas fa-check-circle" style="color:#2A5298;"></i> Recommended action: tailor skills to job description, add quantifiable metrics.</p>
-      </div>
-    `;
-    previewContent.innerHTML = previewHtml;
-    
-    let scoreMessage = `✅ ATS Compatibility Score: ${atsScore}/100 — `;
-    if(atsScore >= 80) scoreMessage += "Excellent, ready for top ATS filters.";
-    else if(atsScore >= 65) scoreMessage += "Good, improve skill relevance and add more metrics.";
-    else scoreMessage += "Needs stronger keyword alignment & quantifiable achievements.";
-    
-    atsScoreSpan.innerHTML = scoreMessage;
-    previewDiv.style.display = 'block';
-    
-    // Smooth scroll to preview
-    previewDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  });
-}
-
-// ========== CV DOWNLOAD (simulated PDF generation) ==========
-const downloadBtn = document.getElementById('downloadCvBtn');
-if (downloadBtn) {
-  downloadBtn.addEventListener('click', () => {
-    const content = `ELIAS VEGA — PROFESSIONAL CV
-═══════════════════════════════════════
-
-CONTACT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Email: elias@vega.me
-Portfolio: eliasvega.dev
-LinkedIn: linkedin.com/in/eliasvega
-
-PROFESSIONAL SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Creative technologist and career strategist with 8+ years of experience in product design and ATS optimization. Proven track record of helping professionals increase interview rates by 92% through strategic resume engineering and personal branding.
-
-WORK EXPERIENCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Lead Product Designer | InnovateX
-2021 – Present
-• Redesigned core platform resulting in 42% increase in user engagement
-• Implemented ATS-friendly design system used by 50+ enterprise clients
-• Mentored 12 junior designers in UX best practices
-
-ATS Consultant | CareerAI
-2019 – 2021
-• Optimized 200+ resumes achieving 85% interview placement rate
-• Developed keyword optimization framework adopted by 3 recruitment agencies
-• Conducted 30+ workshops on ATS navigation strategies
-
-EDUCATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-M.Sc. Human-Computer Interaction
-Stanford University | 2017 – 2019
-
-B.A. Digital Media Design
-University of California, Berkeley | 2013 – 2017
-
-CERTIFICATIONS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-• Advanced ATS Optimization Specialist (2024)
-• Certified Career Coach (ICF)
-• Figma Mastery Certification
-
-SKILLS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-ATS Optimization · UX Research · Product Strategy · Resume Engineering · Career Coaching · Figma · JavaScript · Data Analysis · Content Strategy
-
-LANGUAGES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-English (Native) · Spanish (Fluent)
-
-REFERENCES AVAILABLE UPON REQUEST
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generated via Smart Portfolio System | March 2025`;
-
-    const blob = new Blob([content], {type: 'application/pdf'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Elias_Vega_CV_2025.pdf';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Show success message
-    const btn = downloadBtn;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-    }, 2000);
-  });
-}
-
-// ========== LAST RESUME dynamic system ==========
-let resumeVersions = [
-  { id: 1, title: "Senior Product Designer Resume", date: "2025-02-15", version: "v2.3", highlights: "Optimized for ATS + leadership metrics, includes portfolio case studies" },
-  { id: 2, title: "Full-Stack + ATS Expert Resume", date: "2025-03-20", version: "v3.0", highlights: "Included Smart ATS builder case study and AI integration experience" }
-];
-
-function renderResumeList() {
-  const container = document.getElementById('resumeListContainer');
-  if(!container) return;
-  
-  // Sort by date descending (latest first) -> "last resume" is the most recent
-  const sorted = [...resumeVersions].sort((a,b) => new Date(b.date) - new Date(a.date));
-  container.innerHTML = '';
-  
-  if(sorted.length === 0) {
-    container.innerHTML = '<div class="resume-item">No resume versions yet. Click "Add new version".</div>';
-    return;
-  }
-  
-  sorted.forEach((res, idx) => {
-    const isLatest = idx === 0;
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'resume-item';
-    itemDiv.innerHTML = `
-      <div style="flex:1">
-        <strong>${escapeHtml(res.title)}</strong> 
-        <span style="font-size:0.75rem; background:#eef2fa; padding:2px 10px; border-radius:40px; margin-left:8px;">${escapeHtml(res.version)}</span>
-        <div style="font-size:0.8rem; color:#4e6b85; margin-top:4px;">
-          <i class="far fa-calendar-alt"></i> ${res.date} — ${escapeHtml(res.highlights.substring(0, 80))}${res.highlights.length > 80 ? '...' : ''}
-        </div>
-      </div>
-      <div>
-        ${isLatest ? '<span style="background:#2A5298; color:white; padding:4px 12px; border-radius:40px; font-size:0.7rem; font-weight:600;"><i class="fas fa-history"></i> LAST RESUME</span>' : '<span style="background:#eef2fa; padding:4px 10px; border-radius:40px; font-size:0.7rem;">archived version</span>'}
-      </div>
-    `;
-    container.appendChild(itemDiv);
-  });
-}
-
-// Add new resume version
-let versionCounter = 3;
-const addBtn = document.getElementById('addNewResumeVersion');
-if (addBtn) {
-  addBtn.addEventListener('click', () => {
-    const now = new Date();
-    const dateStr = now.toISOString().slice(0,10);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const month = months[now.getMonth()];
-    const day = now.getDate();
-    const year = now.getFullYear();
-    const formattedDate = `${month} ${day}, ${year}`;
-    
-    const newVersion = {
-      id: Date.now(),
-      title: `Resume Draft ${versionCounter}`,
-      date: formattedDate,
-      version: `v${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 10)}`,
-      highlights: `Added ATS keywords, updated achievements, and integrated Smart ATS Builder feedback — optimized for ${new Date().toLocaleDateString()}`
-    };
-    resumeVersions.push(newVersion);
-    versionCounter++;
-    renderResumeList();
-    
-    // Show success message
-    const btn = addBtn;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> Added!';
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-    }, 1500);
-    
-    // Scroll to show the new version
-    document.getElementById('resume-last').scrollIntoView({ behavior: 'smooth' });
-  });
-}
-
-// Initial render of resume list
-renderResumeList();
-
-// ========== SMOOTH SCROLL FOR HASH LINKS ==========
-// Handle initial hash on page load
-if(window.location.hash) {
-  setTimeout(() => {
-    const target = document.querySelector(window.location.hash);
-    if(target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, 100);
-}
-
-// Add smooth scroll to all anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function(e) {
-    const href = this.getAttribute('href');
-    if(href === '#' || href === '') return;
-    
-    const target = document.querySelector(href);
-    if(target) {
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth' });
-      // Update URL without jumping
-      history.pushState(null, null, href);
-    }
-  });
-});
-
-// ========== ADD INTERACTIVE FEEDBACK FOR FORM FIELDS ==========
-const atsInputs = ['atsName', 'atsTitle', 'atsSkills', 'atsExperience', 'atsSummary'];
-atsInputs.forEach(id => {
-  const element = document.getElementById(id);
-  if(element) {
-    element.addEventListener('focus', function() {
-      this.parentElement.classList.add('focused');
-    });
-    element.addEventListener('blur', function() {
-      this.parentElement.classList.remove('focused');
-    });
-  }
-});
-
-// Add loading animation for ATS button
-if (generateBtn) {
-  generateBtn.addEventListener('click', function() {
-    const originalText = this.innerHTML;
-    this.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Analyzing...';
-    setTimeout(() => {
-      this.innerHTML = originalText;
-    }, 500);
-  });
-}
-
-// Optional: Add scroll reveal effect for cards
-const observerOptions = {
-  threshold: 0.1,
-  rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if(entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, observerOptions);
-
-// Add initial styles for animation
-document.querySelectorAll('.card, .resume-item, .ats-builder-area').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(20px)';
-  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-  observer.observe(el);
-});
-
-// Trigger initial animations for visible elements
-setTimeout(() => {
-  document.querySelectorAll('.card, .resume-item, .ats-builder-area').forEach(el => {
-    const rect = el.getBoundingClientRect();
-    if(rect.top < window.innerHeight) {
-      el.style.opacity = '1';
-      el.style.transform = 'translateY(0)';
-    }
-  });
-}, 100);
-
- // DOM Elements
-  const fileUploadArea = document.getElementById('fileUploadArea');
-  const fileInput = document.getElementById('resumeFileInput');
-  const uploadedFileInfo = document.getElementById('uploadedFileInfo');
-  const resumeTextArea = document.getElementById('resumeTextInput');
-  const jobDescArea = document.getElementById('jobDescriptionInput');
-  const generateBtn = document.getElementById('generateAtsOptimizedBtn');
-  const resultDiv = document.getElementById('atsOptimizedResult');
-  const matchScoreSpan = document.getElementById('atsMatchScore');
-  const keywordAnalysisDiv = document.getElementById('keywordAnalysis');
-  const optimizedContentDiv = document.getElementById('optimizedResumeContent');
-
-  let currentResumeText = '';
-  let currentFileName = '';
-
-  // File upload handling
+// File upload handling
+if (fileUploadArea) {
   fileUploadArea.addEventListener('click', () => fileInput.click());
   fileUploadArea.addEventListener('dragover', (e) => { e.preventDefault(); fileUploadArea.style.borderColor = '#2A5298'; });
   fileUploadArea.addEventListener('dragleave', () => fileUploadArea.style.borderColor = '#cbdde9');
@@ -380,123 +83,138 @@ setTimeout(() => {
   fileInput.addEventListener('change', (e) => {
     if (e.target.files[0]) handleFile(e.target.files[0]);
   });
+}
 
-  function handleFile(file) {
-    if (file.type === 'text/plain' || file.type === 'application/pdf' || file.name.endsWith('.txt')) {
-      currentFileName = file.name;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        currentResumeText = e.target.result;
-        resumeTextArea.value = currentResumeText;
-        uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Loaded: ${currentFileName}`;
-      };
-      reader.readAsText(file);
+function handleFile(file) {
+  if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+    currentFileName = file.name;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      currentResumeText = e.target.result;
+      resumeTextArea.value = currentResumeText;
+      uploadedFileInfo.innerHTML = `<i class="fas fa-check-circle"></i> Loaded: ${currentFileName}`;
+    };
+    reader.readAsText(file);
+  } else {
+    alert('Please upload a TXT file or paste text manually.');
+    uploadedFileInfo.innerHTML = '<span style="color:#c2410c;">⚠️ For best results, paste text in the textarea below</span>';
+  }
+}
+
+// Extract keywords from text
+function extractKeywords(text) {
+  const words = text.toLowerCase().split(/[\s,.\n()\-:;]+/);
+  const commonWords = new Set(['the', 'and', 'for', 'with', 'experience', 'skills', 'years', 'ability', 'strong', 'proven', 'team', 'work', 'communication', 'required', 'preferred', 'looking', 'seeking', 'about', 'are', 'will', 'have', 'your', 'you', 'our']);
+  const keywords = words.filter(w => w.length > 3 && !commonWords.has(w) && !/^\d+$/.test(w));
+  const unique = [...new Set(keywords)];
+  return unique.slice(0, 40);
+}
+
+// Calculate match score & find missing keywords
+function analyzeATS(resumeText, jobDesc) {
+  if (!resumeText || !jobDesc) return { score: 0, matched: [], missing: [], suggestions: [] };
+  
+  const resumeLower = resumeText.toLowerCase();
+  const jobKeywords = extractKeywords(jobDesc);
+  const matched = [];
+  const missing = [];
+  
+  jobKeywords.forEach(keyword => {
+    if (resumeLower.includes(keyword)) {
+      matched.push(keyword);
     } else {
-      alert('Please upload a TXT file or paste text manually. For PDF demo, paste content.');
-      uploadedFileInfo.innerHTML = '<span style="color:#c2410c;">⚠️ For demo, paste text in the textarea below</span>';
+      missing.push(keyword);
+    }
+  });
+  
+  const score = jobKeywords.length > 0 ? Math.round((matched.length / jobKeywords.length) * 100) : 0;
+  const suggestions = missing.slice(0, 8).map(k => `Add "${k}" to your skills or experience section`);
+  
+  return { score, matched, missing, suggestions, jobKeywords };
+}
+
+// Generate optimized resume based on JD
+function generateOptimizedResume(originalResume, jobDesc, matchedKeywords, missingKeywords) {
+  if (!originalResume) return "No resume content provided.";
+  
+  let optimized = `╔══════════════════════════════════════════════════════════╗\n`;
+  optimized += `║              ATS-OPTIMIZED RESUME                         ║\n`;
+  optimized += `╚══════════════════════════════════════════════════════════╝\n\n`;
+  optimized += `Generated: ${new Date().toLocaleDateString()}\n`;
+  optimized += `Based on job description analysis\n\n`;
+  optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  
+  // Add keyword optimization note
+  if (matchedKeywords.length > 0) {
+    optimized += `✓ STRONG MATCHES (${matchedKeywords.length} keywords):\n`;
+    optimized += `  ${matchedKeywords.slice(0, 15).join(', ')}\n\n`;
+  }
+  if (missingKeywords.length > 0) {
+    optimized += `⚠️ ADD THESE KEYWORDS TO IMPROVE SCORE (${missingKeywords.length} missing):\n`;
+    optimized += `  ${missingKeywords.slice(0, 12).join(', ')}\n\n`;
+  }
+  
+  optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  optimized += `OPTIMIZED RESUME CONTENT\n`;
+  optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  
+  // Add structured content
+  optimized += `📌 PROFESSIONAL SUMMARY\n`;
+  optimized += `Results-driven professional with expertise in ${matchedKeywords.slice(0, 5).join(', ') || 'key competencies'}. `;
+  optimized += `Proven track record of delivering high-impact results and driving organizational success.\n\n`;
+  
+  // Extract and display original sections
+  const lines = originalResume.split('\n');
+  let skillsSection = '';
+  let experienceSection = '';
+  let inSkills = false;
+  
+  for (let line of lines) {
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('skill') || lowerLine.includes('expertise') || lowerLine.includes('competencies')) {
+      inSkills = true;
+      skillsSection += line + '\n';
+    } else if (inSkills && (line.trim() === '' || lowerLine.includes('experience') || lowerLine.includes('education') || lowerLine.includes('work'))) {
+      inSkills = false;
+    } else if (inSkills) {
+      skillsSection += line + '\n';
+    }
+    
+    if (lowerLine.includes('experience') || lowerLine.includes('work history') || lowerLine.includes('employment')) {
+      experienceSection += line + '\n';
+    } else if (experienceSection && line.trim().length > 0 && !lowerLine.includes('education') && !lowerLine.includes('skill')) {
+      experienceSection += line + '\n';
     }
   }
-
-  // Extract keywords from text
-  function extractKeywords(text) {
-    const words = text.toLowerCase().split(/[\s,.\n()\-:;]+/);
-    const commonWords = new Set(['the', 'and', 'for', 'with', 'experience', 'skills', 'years', 'ability', 'strong', 'proven', 'team', 'work', 'communication', 'required', 'preferred', 'looking', 'seeking']);
-    const keywords = words.filter(w => w.length > 3 && !commonWords.has(w) && !/^\d+$/.test(w));
-    const unique = [...new Set(keywords)];
-    return unique.slice(0, 40);
+  
+  optimized += `💼 PROFESSIONAL EXPERIENCE\n`;
+  optimized += experienceSection || '• Senior role with demonstrated success in relevant domains.\n';
+  optimized += `\n🛠️ CORE SKILLS & COMPETENCIES\n`;
+  
+  // Add missing keywords as recommendations
+  const missingToAdd = missingKeywords.slice(0, 8);
+  if (missingToAdd.length > 0) {
+    optimized += `[RECOMMENDED TO ADD]: ${missingToAdd.join(', ')}\n`;
   }
+  optimized += skillsSection || '• Strategic Planning • Cross-functional Leadership • Data Analysis • Project Management\n';
+  
+  optimized += `\n🎓 EDUCATION & CERTIFICATIONS\n`;
+  optimized += `• Relevant certifications aligned with industry standards\n`;
+  optimized += `• Continuous learning and professional development\n\n`;
+  
+  optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  optimized += `✨ ATS OPTIMIZATION TIPS:\n`;
+  optimized += `1. Include the missing keywords naturally in your experience bullets\n`;
+  optimized += `2. Use standard section headers (Work Experience, Skills, Education)\n`;
+  optimized += `3. Quantify achievements with numbers and percentages\n`;
+  optimized += `4. Avoid tables, graphics, and unusual formatting\n`;
+  optimized += `5. Use a clean, single-column layout\n`;
+  
+  return optimized;
+}
 
-  // Calculate match score & find missing keywords
-  function analyzeATS(resumeText, jobDesc) {
-    if (!resumeText || !jobDesc) return { score: 0, matched: [], missing: [], suggestions: [] };
-    
-    const resumeLower = resumeText.toLowerCase();
-    const jobKeywords = extractKeywords(jobDesc);
-    const matched = [];
-    const missing = [];
-    
-    jobKeywords.forEach(keyword => {
-      if (resumeLower.includes(keyword)) {
-        matched.push(keyword);
-      } else {
-        missing.push(keyword);
-      }
-    });
-    
-    const score = jobKeywords.length > 0 ? Math.round((matched.length / jobKeywords.length) * 100) : 0;
-    const suggestions = missing.slice(0, 8).map(k => `Add "${k}" to your skills or experience section`);
-    
-    return { score, matched, missing, suggestions, jobKeywords };
-  }
-
-  // Generate optimized resume based on JD
-  function generateOptimizedResume(originalResume, jobDesc, matchedKeywords, missingKeywords) {
-    if (!originalResume) return "No resume content provided.";
-    
-    const lines = originalResume.split('\n');
-    let optimized = `=== ATS-OPTIMIZED RESUME ===\n`;
-    optimized += `Generated based on job description analysis\n\n`;
-    
-    // Add keyword optimization note
-    if (matchedKeywords.length > 0) {
-      optimized += `✓ STRONG MATCHES: ${matchedKeywords.slice(0, 15).join(', ')}\n\n`;
-    }
-    if (missingKeywords.length > 0) {
-      optimized += `⚠️ ADD THESE KEYWORDS TO IMPROVE SCORE:\n${missingKeywords.slice(0, 12).join(', ')}\n\n`;
-    }
-    
-    optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    optimized += `OPTIMIZED RESUME CONTENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-    
-    // Add structured content
-    optimized += `📌 PROFESSIONAL SUMMARY\n`;
-    optimized += `Results-driven professional with expertise in ${matchedKeywords.slice(0, 5).join(', ')}. Proven track record of delivering high-impact results.\n\n`;
-    
-    // Extract and display original sections
-    let skillsSection = '';
-    let experienceSection = '';
-    let inSkills = false;
-    
-    for (let line of lines) {
-      if (line.toLowerCase().includes('skill') || line.toLowerCase().includes('expertise')) {
-        inSkills = true;
-        skillsSection += line + '\n';
-      } else if (inSkills && (line.trim() === '' || line.toLowerCase().includes('experience') || line.toLowerCase().includes('education'))) {
-        inSkills = false;
-      } else if (inSkills) {
-        skillsSection += line + '\n';
-      }
-      
-      if (line.toLowerCase().includes('experience') || line.toLowerCase().includes('work history')) {
-        experienceSection += line + '\n';
-      } else if (experienceSection && line.trim().length > 0 && !line.toLowerCase().includes('education')) {
-        experienceSection += line + '\n';
-      }
-    }
-    
-    optimized += `💼 KEY EXPERIENCE\n${experienceSection || '• Senior role with demonstrated success in relevant domains.\n'}\n`;
-    optimized += `🛠️ CORE SKILLS & COMPETENCIES\n`;
-    
-    // Add missing keywords as suggestions
-    const missingToAdd = missingKeywords.slice(0, 8);
-    if (missingToAdd.length > 0) {
-      optimized += `[RECOMMENDED TO ADD]: ${missingToAdd.join(', ')}\n`;
-    }
-    optimized += `${skillsSection || '• Strategic Planning • Cross-functional Leadership • Data Analysis\n'}\n`;
-    
-    optimized += `🎓 EDUCATION & CERTIFICATIONS\n`;
-    optimized += `• Relevant certifications aligned with industry standards\n\n`;
-    optimized += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-    optimized += `✨ ATS OPTIMIZATION TIPS:\n`;
-    optimized += `1. Include the missing keywords naturally in your experience bullets\n`;
-    optimized += `2. Use standard section headers (Work Experience, Skills, Education)\n`;
-    optimized += `3. Quantify achievements with numbers and percentages\n`;
-    optimized += `4. Avoid tables, graphics, and unusual formatting\n`;
-    
-    return optimized;
-  }
-
-  // Main generation function
+// Main generation function
+if (generateBtn) {
   generateBtn.addEventListener('click', () => {
     const resumeText = resumeTextArea.value.trim();
     const jobDesc = jobDescArea.value.trim();
@@ -529,16 +247,18 @@ setTimeout(() => {
         <div style="margin: 1rem 0;">
           <strong><i class="fas fa-key"></i> Keyword Match Analysis:</strong>
           <div class="keyword-match">
-            ${analysis.matched.slice(0, 12).map(k => `<span class="keyword-tag match">✓ ${k}</span>`).join('')}
-            ${analysis.missing.slice(0, 12).map(k => `<span class="keyword-tag missing">✗ ${k}</span>`).join('')}
+            ${analysis.matched.slice(0, 12).map(k => `<span class="keyword-tag match">✓ ${escapeHtml(k)}</span>`).join('')}
+            ${analysis.missing.slice(0, 12).map(k => `<span class="keyword-tag missing">✗ ${escapeHtml(k)}</span>`).join('')}
           </div>
-          ${analysis.missing.length > 0 ? `<p style="margin-top: 0.8rem; color: #c2410c;"><i class="fas fa-exclamation-triangle"></i> Missing ${analysis.missing.length} key keywords. Add them to boost your ATS score.</p>` : '<p style="color: #0a5c2e;">✅ Excellent keyword coverage!</p>'}
+          ${analysis.missing.length > 0 ? 
+            `<p style="margin-top: 0.8rem; color: #c2410c;"><i class="fas fa-exclamation-triangle"></i> Missing ${analysis.missing.length} key keywords. Add them to boost your ATS score.</p>` : 
+            '<p style="color: #0a5c2e;">✅ Excellent keyword coverage! Your resume is well-aligned with the job description.</p>'}
         </div>
       `;
       
       // Display optimized resume
       optimizedContentDiv.innerHTML = `
-        <div style="background: #f8faff; border-radius: 1rem; padding: 1.2rem; white-space: pre-wrap; font-family: monospace; font-size: 0.85rem; max-height: 500px; overflow-y: auto;">
+        <div style="background: #f8faff; border-radius: 1rem; padding: 1.2rem; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.85rem; max-height: 500px; overflow-y: auto;">
           ${optimizedResume.replace(/\n/g, '<br>')}
         </div>
       `;
@@ -549,11 +269,17 @@ setTimeout(() => {
       
       // Store for download
       window.currentOptimizedResume = optimizedResume;
+      
+      // Smooth scroll to results
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 500);
   });
-  
-  // Download optimized resume
-  document.getElementById('downloadOptimizedResumeBtn')?.addEventListener('click', () => {
+}
+
+// Download optimized resume
+const downloadOptimizedBtn = document.getElementById('downloadOptimizedResumeBtn');
+if (downloadOptimizedBtn) {
+  downloadOptimizedBtn.addEventListener('click', () => {
     if (window.currentOptimizedResume) {
       const blob = new Blob([window.currentOptimizedResume], {type: 'text/plain'});
       const url = URL.createObjectURL(blob);
@@ -568,54 +294,168 @@ setTimeout(() => {
       alert('Generate an optimized resume first.');
     }
   });
-  
-  // CV Download
-  document.getElementById('downloadCvBtn')?.addEventListener('click', () => {
-    const content = `ELIAS VEGA — ATS EXPERT CV\n\n8+ years experience in ATS optimization. Proven 94% success rate.`;
-    const blob = new Blob([content], {type: 'application/pdf'});
+}
+
+// CV Download
+const downloadCvBtn = document.getElementById('downloadCvBtn');
+if (downloadCvBtn) {
+  downloadCvBtn.addEventListener('click', () => {
+    const content = `ELIAS VEGA — ATS EXPERT CV
+
+CONTACT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email: elias@vega.me
+Portfolio: eliasvega.dev
+LinkedIn: linkedin.com/in/eliasvega
+
+PROFESSIONAL SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATS Optimization Specialist with 8+ years of experience helping professionals increase interview rates by 94%. Expert in keyword matching, resume engineering, and career strategy.
+
+EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Lead ATS Strategist | 2021–Present
+  Optimized 500+ resumes with 85% interview placement rate
+• Career Consultant | 2018–2021
+  Developed keyword optimization framework used by 50+ agencies
+
+SKILLS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ATS Optimization · Keyword Analysis · Resume Engineering · Career Coaching · Data Analysis
+
+CERTIFICATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Advanced ATS Optimization Specialist
+• Certified Career Coach (ICF)`;
+
+    const blob = new Blob([content], {type: 'text/plain'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Elias_Vega_CV.pdf';
+    a.download = 'Elias_Vega_CV.txt';
     a.click();
     URL.revokeObjectURL(url);
+    
+    const btn = downloadCvBtn;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 2000);
   });
+}
+
+// ========== LAST RESUME dynamic system ==========
+let resumeVersions = [
+  { id: 1, title: "Senior Product Designer Resume", date: "2025-02-15", version: "v2.3", highlights: "Optimized for ATS + leadership metrics" },
+  { id: 2, title: "Full-Stack + ATS Expert Resume", date: "2025-03-20", version: "v3.0", highlights: "Included Smart ATS builder case study" }
+];
+
+function renderResumeList() {
+  const container = document.getElementById('resumeListContainer');
+  if(!container) return;
   
-  // Resume versions
-  let resumeVersions = [
-    { id: 1, title: "Product Designer Resume", date: "2025-03-20", version: "v3.0", highlights: "Optimized with ATS keywords" }
-  ];
+  const sorted = [...resumeVersions].sort((a,b) => new Date(b.date) - new Date(a.date));
+  container.innerHTML = '';
   
-  function renderResumeList() {
-    const container = document.getElementById('resumeListContainer');
-    if(!container) return;
-    container.innerHTML = resumeVersions.map((res, idx) => `
-      <div class="resume-item">
-        <div><strong>${res.title}</strong> <span style="background:#eef2fa; padding:2px 8px; border-radius:40px;">${res.version}</span><div style="font-size:0.8rem;">📅 ${res.date}</div></div>
-        <div>${idx === 0 ? '<span style="background:#2A5298; color:white; padding:4px 12px; border-radius:40px;">LAST RESUME</span>' : ''}</div>
-      </div>
-    `).join('');
+  if(sorted.length === 0) {
+    container.innerHTML = '<div class="resume-item">No resume versions yet. Click "Add new version".</div>';
+    return;
   }
   
-  document.getElementById('addNewResumeVersion')?.addEventListener('click', () => {
-    resumeVersions.unshift({ id: Date.now(), title: `ATS Optimized ${new Date().toLocaleDateString()}`, date: new Date().toISOString().slice(0,10), version: `v${resumeVersions.length+1}.0`, highlights: "New ATS version" });
+  sorted.forEach((res, idx) => {
+    const isLatest = idx === 0;
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'resume-item';
+    itemDiv.innerHTML = `
+      <div style="flex:1">
+        <strong>${escapeHtml(res.title)}</strong> 
+        <span style="font-size:0.75rem; background:#eef2fa; padding:2px 10px; border-radius:40px; margin-left:8px;">${escapeHtml(res.version)}</span>
+        <div style="font-size:0.8rem; color:#4e6b85; margin-top:4px;">
+          <i class="far fa-calendar-alt"></i> ${res.date} — ${escapeHtml(res.highlights.substring(0, 80))}${res.highlights.length > 80 ? '...' : ''}
+        </div>
+      </div>
+      <div>
+        ${isLatest ? '<span style="background:#2A5298; color:white; padding:4px 12px; border-radius:40px; font-size:0.7rem; font-weight:600;"><i class="fas fa-history"></i> LAST RESUME</span>' : '<span style="background:#eef2fa; padding:4px 10px; border-radius:40px; font-size:0.7rem;">archived</span>'}
+      </div>
+    `;
+    container.appendChild(itemDiv);
+  });
+}
+
+let versionCounter = 3;
+const addResumeBtn = document.getElementById('addNewResumeVersion');
+if (addResumeBtn) {
+  addResumeBtn.addEventListener('click', () => {
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    
+    const newVersion = {
+      id: Date.now(),
+      title: `Resume Draft ${versionCounter}`,
+      date: formattedDate,
+      version: `v${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 10)}`,
+      highlights: `Added ATS keywords and Smart ATS Builder feedback`
+    };
+    resumeVersions.unshift(newVersion);
+    versionCounter++;
     renderResumeList();
+    
+    const btn = addResumeBtn;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i> Added!';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 1500);
   });
-  renderResumeList();
-  
-  // Mobile menu & active link
-  const mobileBtn = document.getElementById('mobileMenuBtn');
-  const navList = document.getElementById('navLinks');
-  mobileBtn?.addEventListener('click', () => navList.classList.toggle('show'));
-  window.addEventListener('scroll', () => {
-    const sections = document.querySelectorAll('section');
-    let current = '';
-    const scrollPos = window.scrollY + 100;
-    sections.forEach(section => {
-      if(scrollPos >= section.offsetTop && scrollPos < section.offsetTop + section.offsetHeight) current = section.id;
-    });
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.classList.remove('active');
-      if(link.getAttribute('href') === `#${current}`) link.classList.add('active');
-    });
+}
+renderResumeList();
+
+// ========== SMOOTH SCROLL FOR HASH LINKS ==========
+if(window.location.hash) {
+  setTimeout(() => {
+    const target = document.querySelector(window.location.hash);
+    if(target) target.scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const href = this.getAttribute('href');
+    if(href === '#' || href === '') return;
+    const target = document.querySelector(href);
+    if(target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth' });
+      history.pushState(null, null, href);
+    }
   });
+});
+
+// ========== SCROLL REVEAL EFFECT ==========
+const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.card, .resume-item, .ats-builder-area, .about-card').forEach(el => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  observer.observe(el);
+});
+
+setTimeout(() => {
+  document.querySelectorAll('.card, .resume-item, .ats-builder-area, .about-card').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if(rect.top < window.innerHeight) {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }
+  });
+}, 100);
